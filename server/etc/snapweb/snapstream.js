@@ -7,7 +7,15 @@ function setCookie(key, value, exdays = -1) {
     let expires = "expires=" + d.toUTCString();
     document.cookie = key + "=" + value + ";" + expires + ";sameSite=Strict;path=/";
 }
-function getCookie(key, defaultValue = "") {
+function getPersistentValue(key, defaultValue = "") {
+    if (!!window.localStorage) {
+        const value = window.localStorage.getItem(key);
+        if (value !== null)
+            return value;
+        window.localStorage.setItem(key, defaultValue);
+        return defaultValue;
+    }
+    // Fallback to cookies if localStorage not available.
     let name = key + "=";
     let decodedCookie = decodeURIComponent(document.cookie);
     let ca = decodedCookie.split(';');
@@ -774,7 +782,7 @@ class SnapStream {
             hello.arch = "web";
             hello.os = navigator.platform;
             hello.hostname = "Snapweb client";
-            hello.uniqueId = getCookie("uniqueId", uuidv4());
+            hello.uniqueId = getPersistentValue("uniqueId", uuidv4());
             this.sendMessage(hello);
             this.syncTime();
             this.syncHandle = window.setInterval(() => this.syncTime(), 1000);
